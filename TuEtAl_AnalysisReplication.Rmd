@@ -1,0 +1,25 @@
+---
+title: "TuEtAl_AnalysisReplication"
+author: "Nicole Merullo"
+date: "2023-10-26"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+## Simulate Data of Child Study
+
+There are four subgroups: black males, white males, black females, and white females.
+
+Assume each distribution is normal and use rnorm()
+
+
+```{r black-males}
+set.seed(823)
+cmb.age <- rnorm(113, mean = 14.09, sd = 2.62)
+cmb.sys <- rnorm(113, mean = 111, sd = 11.637)
+cmb.dia <- rnorm(113, mean = 67.31, sd = 10.867)
+cmb.bmi <- rnorm(113, mean = 23.91, sd = 6.950)
+```
+
