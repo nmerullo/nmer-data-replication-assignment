@@ -7,6 +7,7 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(faux)
 ```
 ## Simulate Data of Child Study
 
@@ -23,3 +24,7 @@ cmb.dia <- rnorm(113, mean = 67.31, sd = 10.867)
 cmb.bmi <- rnorm(113, mean = 23.91, sd = 6.950)
 ```
 
+simulate correlation relationship between variables when simulation
+simulate correlated variables rnorm_multi() in package faux
+I made the systolic/diastolic correlation x because i found a paper that said x
+emipirical = true
