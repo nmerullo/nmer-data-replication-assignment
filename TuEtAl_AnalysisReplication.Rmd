@@ -26,5 +26,5 @@ cmb.bmi <- rnorm(113, mean = 23.91, sd = 6.950)
 
 simulate correlation relationship between variables when simulation
 simulate correlated variables rnorm_multi() in package faux
-I made the systolic/diastolic correlation x because i found a paper that said x
+I made the systolic/diastolic correlation 0.74 because i found a paper that said that
 emipirical = true
