@@ -1,0 +1,52 @@
+---
+title: "Mahabala.et.al_AnalysisReplication"
+author: "Nicole Merullo"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(curl)
+```
+
+```{r}
+f <- curl("https://raw.githubusercontent.com/nmerullo/nmer-data-replication-assignment/main/Dengue_F1000.csv")
+dengue <- read.csv(f, header = TRUE, sep = ",")
+head(dengue)
+summary(dengue)
+```
+```{r}
+# first, some exploratory visualization
+par(mfrow = c(1, 3))
+plot(as.factor(dengue$Severe_Dengue), dengue$Postural.SBP_Drop, xlab = "Severe Dengue", ylab = "Systolic BP Drop", col = "lightgreen")
+plot(as.factor(dengue$Severe_Dengue), dengue$Fall_Percentage, xlab = "Severe Dengue", ylab = "SBP Fall Percentage", col = "lightblue")
+plot(as.factor(dengue$Severe_Dengue), dengue$HcT.above.cutoff, xlab = "Severe Dengue", ylab = "Hematocrit Above Cutoff", col = "hotpink") #I added hematocrit because it is one of the traditional diagnostics for severe dengue
+```
+
+```{r}
+pairs(dengue)
+```
+
+```{r}
+table(dengue$Severe_Dengue, dengue$Postural.SBP_Drop)
+```
+
+In a single logistic regression, Postrual SBP is a very significant predictor of severe dengue.
+```{r}
+# glm of Severe Dengue ~ Postural Systolic BP Drop
+glm <- glm(data = dengue, Severe_Dengue ~ Postural.SBP_Drop, family = "binomial")
+summary(glm)
+```
+multiple logistic regression:
+```{r}
+dengue$Hct_Rise <- as.factor(dengue$Hct_Rise)  # making all of 1/0 columns factors
+dengue$Ascite_Effusion <- as.factor(dengue$Ascite_Efusion)
+dengue$Hepatomegaly <- as.factor(dengue$Hepatomegaly)
+dengue$Lethargy <- as.factor(dengue$Lethargy)
+dengue$Severe.Vomiting <- as.factor(dengue$Severe.Vomiting)
+dengue$Severe.Abdominal.pain <- as.factor(dengue$Severe.Abdominal.pain)
+dengue$Mucosal.Bleeding <- as.factor(dengue$Mucosal.Bleeding)
+glm.dengue <- glm(data = dengue, formula = Severe_Dengue ~ Postural.SBP_Drop + Hct_Rise + Ascite_Effusion + Hepatomegaly + Lethargy + Severe.Vomiting + Severe.Abdominal.pain + Mucosal.Bleeding, family = binomial)
+summary(glm.dengue)
+```

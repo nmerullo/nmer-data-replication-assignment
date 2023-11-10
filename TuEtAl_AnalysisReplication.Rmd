@@ -28,3 +28,23 @@ simulate correlation relationship between variables when simulation
 simulate correlated variables rnorm_multi() in package faux
 I made the systolic/diastolic correlation 0.74 because i found a paper that said that
 emipirical = true
+
+The order of the variables is: age, systolic blood pressure, diastolic blood pressure, serum renin, serum aldosterone
+choosing not to use BMI because there are no correlations given in the paper
+```{r black-males}
+black.male.children <- rnorm_multi(n= 62,
+                                   mu = c(14.09, 111, 67.31, 3.14, 9.28),
+                                   sd = c(2.62, 11.637, 10.867, 2.384, 6.133),
+                                   r = c())
+```
+R = matrix(cbind(1.0, -.-, -.-, ))
+Age to age, age to sys, age to dia, age to renin, age to ald
+
+R = matrix(cbind(1, 0.8, -0.5, 0, 0.8, 1, -0.3, 0.3, -0.5, -0.3, 1, 0.6, 0,
+    0.3, 0.6, 1), nrow = 4)
+    [,1] [,2] [,3] [,4] [,5]
+[1,]  1.0  0.8 -0.5  0.0
+[2,]  0.8  1.0 -0.3  0.3
+[3,] -0.5 -0.3  1.0  0.6
+[4,]  0.0  0.3  0.6  1.0
+[5,]  
