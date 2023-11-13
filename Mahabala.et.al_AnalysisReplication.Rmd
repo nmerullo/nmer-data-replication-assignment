@@ -25,7 +25,7 @@ plot(as.factor(dengue$Severe_Dengue), dengue$HcT.above.cutoff, xlab = "Severe De
 ```
 
 ```{r}
-pairs(dengue)
+## pairs(dengue)
 ```
 
 ```{r}
@@ -47,6 +47,6 @@ dengue$Lethargy <- as.factor(dengue$Lethargy)
 dengue$Severe.Vomiting <- as.factor(dengue$Severe.Vomiting)
 dengue$Severe.Abdominal.pain <- as.factor(dengue$Severe.Abdominal.pain)
 dengue$Mucosal.Bleeding <- as.factor(dengue$Mucosal.Bleeding)
-glm.dengue <- glm(data = dengue, formula = Severe_Dengue ~ Postural.SBP_Drop + Hct_Rise + Ascite_Effusion + Hepatomegaly + Lethargy + Severe.Vomiting + Severe.Abdominal.pain + Mucosal.Bleeding, family = binomial)
+glm.dengue <- glm(data = dengue, formula = Severe_Dengue ~ Hct_Rise + Postural.SBP_Drop + Ascite_Effusion + Hepatomegaly + Lethargy + Severe.Vomiting + Severe.Abdominal.pain + Mucosal.Bleeding, family = binomial)
 summary(glm.dengue)
 ```
