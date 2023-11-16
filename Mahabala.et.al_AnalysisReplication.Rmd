@@ -41,12 +41,14 @@ summary(glm)
 multiple logistic regression:
 ```{r}
 dengue$Hct_Rise <- as.factor(dengue$Hct_Rise)  # making all of 1/0 columns factors
-dengue$Ascite_Effusion <- as.factor(dengue$Ascite_Efusion)
+dengue$Ascite_Efusion <- as.factor(dengue$Ascite_Efusion)
 dengue$Hepatomegaly <- as.factor(dengue$Hepatomegaly)
 dengue$Lethargy <- as.factor(dengue$Lethargy)
 dengue$Severe.Vomiting <- as.factor(dengue$Severe.Vomiting)
 dengue$Severe.Abdominal.pain <- as.factor(dengue$Severe.Abdominal.pain)
 dengue$Mucosal.Bleeding <- as.factor(dengue$Mucosal.Bleeding)
-glm.dengue <- glm(data = dengue, formula = Severe_Dengue ~ Hct_Rise + Postural.SBP_Drop + Ascite_Effusion + Hepatomegaly + Lethargy + Severe.Vomiting + Severe.Abdominal.pain + Mucosal.Bleeding, family = binomial)
+glm.dengue <- glm(data = dengue, formula = Severe_Dengue ~ Hct_Rise + Postural.SBP_Drop + Ascite_Efusion + Hepatomegaly + Lethargy + Severe.Vomiting + Severe.Abdominal.pain + Mucosal.Bleeding, family = binomial)
 summary(glm.dengue)
 ```
+
+Odds ratio
