@@ -4,11 +4,25 @@ author: "Nicole Merullo"
 date: "`r Sys.Date()`"
 output: html_document
 ---
-
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(curl)
 ```
+# Dengue Fever, Systolic BP, and Multiple Logistic Regression
+
+```{r moquito, echo=FALSE, fig.align='center', out.width='25%'}
+knitr::include_graphics('https://www.cdc.gov/dengue/images/transmission/Aedes-aegypti.jpg?_=25767') 
+```
+
+Dengue fever is a viral disease spread by mosquitoes. 10-15% of cases in humans progress to severe dengue which can result in mortality. Currently, the gold standard for severe dengue diagnosis is a rise in hematocrit. Hematocrit is a biomarker for red blood cell concentration. In severe dengue, fluid leaks from the capillaries causing a sharp increase in red blood cell concentration, measured by hematocrit and a concomitant drop in platelets. However, running these blood tests is expensive for low resource hospitals and may not be informative if a baseline hematocrit is not available. Other parameters for diagnosis for severe dengue, as recognized by World Health Organization (WHO), are abdominal pain, persistent vomiting, fluid accumulation (pleural effusion), muscosal bleeding, lethargy, and liver enlargement. Mahabala et al. (2023) propose a new diagnostic standard as a proxy for capillary leak. Loss of fluid into the interstitial space causes hypovolemia and consequently, hypotension. Orthostatic blood pressure changes (i.e., standing up) can be used instead to assess if a patient has progressed to severe dengue. 
+
+Mahabala et al. conducted a prospective observational study with 150 patients admitted to a hospital with dengue between 2011-2015. 23 of those patients developed severe dengue while in the study by existing WHO parameters. The researchers assessed all WHO recognized parameters of severe dengue along with postural change in systolic blood pressure (SBP) to see if their prediction that a drop in blood pressure while standing up could be used as a proxy for capillary leak experienced during severe dengue. They determined that a 10.33% postural drop in SBP was the ideal cut off between dengue and severe dengue. 
+
+There are two analyses I will replicate. The first is comparing mean parameters between severe dengue and non-severe dengue to determine if these were significantly different distributions. The parameters used in this analysis were age, duration of fever before admission in days, hemoglobin on admission, hematocrit on admission, platelet count on admission, total leukocyte count, aspartate transaminase, lowest platelet, percentage fall in SBP, and albumin. The second is a multiple logistic regression to identify parameters with a statistically significant adjusted odds ration of developing severe dengue. The parameters used in this analysis were rise in hematocrit, ascites/pleural effusion, postural fall in SBP, hepatomegaly, lethargy, persistent vomiting, severe abdominal pain, and mucosal bleeding. I will create an odds ratio plot to visualize this logistic regression.
+
+## Data
+
+First I will import the data supplement from Mahabala et al 2023.
 
 ```{r}
 f <- curl("https://raw.githubusercontent.com/nmerullo/nmer-data-replication-assignment/main/Dengue_F1000.csv")
@@ -16,23 +30,21 @@ dengue <- read.csv(f, header = TRUE, sep = ",")
 head(dengue)
 summary(dengue)
 ```
+Notably, the parameters for the multiple regression are mostly entered in as 0s and 1s denoting absence or presence of the condition. These variables will need to be converted to factors for multiple logistic regression.
+
+Below is some exploratory visualization of postual drop in SBP, fall percentage, and the traditional proxy for capillary leak, hematocrit. The data supplement uses PCV (packed cell volume) which is a synonym for hematocrit. People with severe dengue have higher mean postural fall in SBP, percentage of SBP fall, hematocrit at admission, and hematocrit on day 2. Further analysis is needed to see if these are statistically significant differences.
+
 ```{r}
 # first, some exploratory visualization
-par(mfrow = c(1, 3))
+par(mfrow = c(1, 4))
 plot(as.factor(dengue$Severe_Dengue), dengue$Postural.SBP_Drop, xlab = "Severe Dengue", ylab = "Systolic BP Drop", col = "lightgreen")
 plot(as.factor(dengue$Severe_Dengue), dengue$Fall_Percentage, xlab = "Severe Dengue", ylab = "SBP Fall Percentage", col = "lightblue")
-plot(as.factor(dengue$Severe_Dengue), dengue$HcT.above.cutoff, xlab = "Severe Dengue", ylab = "Hematocrit Above Cutoff", col = "hotpink") #I added hematocrit because it is one of the traditional diagnostics for severe dengue
+plot(as.factor(dengue$Severe_Dengue), dengue$PCV_day_1, xlab = "Severe Dengue", ylab = "PCV Day 1", col = "hotpink") #I added hematocrit because it is one of the traditional diagnostics for severe dengue
+plot(as.factor(dengue$Severe_Dengue), dengue$PCV_day_2, xlab = "Severe Dengue", ylab = "PCV Day 2", col = "yellow") #I added hematocrit because it is one of the traditional diagnostics for severe dengue
 ```
+## Multiple Logistic Regression
 
-```{r}
-## pairs(dengue)
-```
-
-```{r}
-table(dengue$Severe_Dengue, dengue$Postural.SBP_Drop)
-```
-
-In a single logistic regression, Postrual SBP is a very significant predictor of severe dengue.
+In a single logistic regression, Postural SBP is a very significant predictor of severe dengue.
 ```{r}
 # glm of Severe Dengue ~ Postural Systolic BP Drop
 glm <- glm(data = dengue, Severe_Dengue ~ Postural.SBP_Drop, family = "binomial")
@@ -51,4 +63,12 @@ glm.dengue <- glm(data = dengue, formula = Severe_Dengue ~ Hct_Rise + Postural.S
 summary(glm.dengue)
 ```
 
-Odds ratio
+
+## Odds ratios
+
+An odds ratio is the odds of an outcome given an exposure compared to the lack of that exposure. An odds ratio greater than 1 means there is a associated odds of that outcome happening. An odds ratio less than 1 means there is a lower odds. An odds ratio equal to 1 does not affect the outcome. A wide CI indicates a low level of precision in the odds ratio. A narrow CI indicates high precision in the odds ratio. In the dengue case, Mahabala et al. would predict a high odds of postural fall in SBP associated with severe dengue, and therefore a high odds ratio (over 1). They might also expect the hematocrit to have a high odds ratio since it is also a proxy of capillary leak and therefore both are measurable manifestations of the same underlying symptom.
+
+```{r}
+coeffs <- glm.dengue$coefficients
+coeffs
+```
