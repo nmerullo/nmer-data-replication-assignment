@@ -6,11 +6,10 @@ output: html_document
 ---
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-library(curl)
 ```
 # Dengue Fever, Systolic BP, and Multiple Logistic Regression
 
-```{r moquito, echo=FALSE, fig.align='center', out.width='25%'}
+```{r mosquito, echo=FALSE, fig.align='center', out.width='100%'}
 knitr::include_graphics('https://www.cdc.gov/dengue/images/transmission/Aedes-aegypti.jpg?_=25767') 
 ```
 
@@ -24,7 +23,8 @@ There are two analyses I will replicate. The first is comparing mean parameters 
 
 First I will import the data supplement from Mahabala et al 2023.
 
-```{r}
+```{r import}
+library(curl)
 f <- curl("https://raw.githubusercontent.com/nmerullo/nmer-data-replication-assignment/main/Dengue_F1000.csv")
 dengue <- read.csv(f, header = TRUE, sep = ",")
 head(dengue)
@@ -34,14 +34,207 @@ Notably, the parameters for the multiple regression are mostly entered in as 0s 
 
 Below is some exploratory visualization of postual drop in SBP, fall percentage, and the traditional proxy for capillary leak, hematocrit. The data supplement uses PCV (packed cell volume) which is a synonym for hematocrit. People with severe dengue have higher mean postural fall in SBP, percentage of SBP fall, hematocrit at admission, and hematocrit on day 2. Further analysis is needed to see if these are statistically significant differences.
 
-```{r}
-# first, some exploratory visualization
+```{r exploratoryvis}
 par(mfrow = c(1, 4))
 plot(as.factor(dengue$Severe_Dengue), dengue$Postural.SBP_Drop, xlab = "Severe Dengue", ylab = "Systolic BP Drop", col = "lightgreen")
 plot(as.factor(dengue$Severe_Dengue), dengue$Fall_Percentage, xlab = "Severe Dengue", ylab = "SBP Fall Percentage", col = "lightblue")
-plot(as.factor(dengue$Severe_Dengue), dengue$PCV_day_1, xlab = "Severe Dengue", ylab = "PCV Day 1", col = "hotpink") #I added hematocrit because it is one of the traditional diagnostics for severe dengue
-plot(as.factor(dengue$Severe_Dengue), dengue$PCV_day_2, xlab = "Severe Dengue", ylab = "PCV Day 2", col = "yellow") #I added hematocrit because it is one of the traditional diagnostics for severe dengue
+plot(as.factor(dengue$Severe_Dengue), dengue$PCV_day_1, xlab = "Severe Dengue", ylab = "PCV Day 1", col = "hotpink")
+plot(as.factor(dengue$Severe_Dengue), dengue$PCV_day_2, xlab = "Severe Dengue", ylab = "PCV Day 2", col = "yellow")
 ```
+
+## Severe vs Non Severe Dengue
+
+It is important to first establish if the severe dengue patients and the non-severe dengue patients are actually two statistically distinct distributions. If they are not, then there is no point in determining diagnostic criteria for severe dengue. To do this, the authors compared means and standard deviations of 10 variables between the two patient groups and derived p values. The paper does not discuss how it got their p values. I will use two sample t tests to compare the two samples (severe vs non severe) for each variable. Below is the table provided by the authors:
+
+```{r table1, echo=FALSE, fig.align='center', out.width='85%'}
+knitr::include_graphics('https://github.com/nmerullo/nmer-data-replication-assignment/blob/main/Mahabala-et-al-2023_Table1.png?raw=true') 
+```
+
+### Subset Samples
+
+First I am subsetting the data frame down to the severe dengue patients and the non severe dengue patients.
+
+```{r severedengue}
+library(dplyr)
+severe.dengue <- filter(dengue, Severe_Dengue == 1)
+head(severe.dengue) #for fun
+length(severe.dengue$Number) #checking that this value equals the number of severe dengue patients reported in the study (23)
+```
+
+```{r nonseveredengue}
+nonsevere.dengue <- filter(dengue, Severe_Dengue == 0)
+head(nonsevere.dengue)
+```
+
+### Severe Dengue Descriptive Stats
+
+Next I am calculating the mean and standard deviation for each of the parameters in Table 1 for each population. The data supplement does not include a column for lowest platelet count and does not include how they derived this value for each sample, so I am excluding it for this analysis.
+
+#### Creating objects for each of the variables for severe dengue:
+
+```{r severedenguevariables}
+severe.age <- severe.dengue$Age
+severe.fever <- severe.dengue$f_adm
+severe.hgb <- severe.dengue$Hb_day_1
+severe.hct <- severe.dengue$PCV_day_1
+severe.platelets <- severe.dengue$Platelet_day_1
+severe.leukocytes <- severe.dengue$TLC
+severe.ast <- severe.dengue$AST
+severe.sbp <- severe.dengue$Fall_Percentage
+severe.alb <- severe.dengue$Albumin
+```
+
+#### Next up, means for each of these variables:
+
+```{r severedenguemeans}
+m.severe.age <- mean(severe.age)
+m.severe.fever <- mean(severe.fever)
+m.severe.hgb <- mean(severe.hgb)
+m.severe.hct <- mean(severe.hct)
+m.severe.platelets <- mean(severe.platelets)
+m.severe.leukocytes <- mean(severe.leukocytes)
+m.severe.ast <- mean(severe.ast)
+m.severe.sbp <- mean(severe.sbp)
+m.severe.alb <- mean(severe.alb)
+```
+
+#### And finally, standard deviations for each of these!
+
+```{r severedengueSDs}
+sd.severe.age <- sd(severe.age)
+sd.severe.fever <- sd(severe.fever)
+sd.severe.hgb <- sd(severe.hgb)
+sd.severe.hct <- sd(severe.hct)
+sd.severe.platelets <- sd(severe.platelets)
+sd.severe.leukocytes <- sd(severe.leukocytes)
+sd.severe.ast <- sd(severe.ast)
+sd.severe.sbp <- sd(severe.sbp)
+sd.severe.alb <- sd(severe.alb)
+```
+
+### Non Severe Dengue Descriptive Stats
+
+I will repeat the above for the non severe sample, again excluding lowest platelet count.
+
+#### Creating objects for each of the variables for severe dengue:
+
+```{r nonseveredenguevariables}
+nonsevere.age <- nonsevere.dengue$Age
+nonsevere.fever <- nonsevere.dengue$f_adm
+nonsevere.hgb <- nonsevere.dengue$Hb_day_1
+nonsevere.hct <- nonsevere.dengue$PCV_day_1
+nonsevere.platelets <- nonsevere.dengue$Platelet_day_1
+nonsevere.leukocytes <- nonsevere.dengue$TLC
+nonsevere.ast <- nonsevere.dengue$AST
+nonsevere.sbp <- nonsevere.dengue$Fall_Percentage
+nonsevere.alb <- nonsevere.dengue$Albumin
+```
+
+#### Means for non severe dengue variables:
+
+```{r nonseveredenguemeans}
+m.nonsevere.age <- mean(nonsevere.age)
+m.nonsevere.fever <- mean(nonsevere.fever)
+m.nonsevere.hgb <- mean(nonsevere.hgb)
+m.nonsevere.hct <- mean(nonsevere.hct)
+m.nonsevere.platelets <- mean(nonsevere.platelets)
+m.nonsevere.leukocytes <- mean(nonsevere.leukocytes)
+m.nonsevere.ast <- mean(nonsevere.ast)
+m.nonsevere.sbp <- mean(nonsevere.sbp)
+m.nonsevere.alb <- mean(nonsevere.alb)
+```
+
+#### Standard deviations for non severe dengue variables
+
+```{r nonseveredengueSDs}
+sd.nonsevere.age <- sd(nonsevere.age)
+sd.nonsevere.fever <- sd(nonsevere.fever)
+sd.nonsevere.hgb <- sd(nonsevere.hgb)
+sd.nonsevere.hct <- sd(nonsevere.hct)
+sd.nonsevere.platelets <- sd(nonsevere.platelets)
+sd.nonsevere.leukocytes <- sd(nonsevere.leukocytes)
+sd.nonsevere.ast <- sd(nonsevere.ast)
+sd.nonsevere.sbp <- sd(nonsevere.sbp)
+sd.nonsevere.alb <- sd(nonsevere.alb)
+```
+
+### T Tests
+
+Ok so far so good. My means and standard deviations are both matching with what the authors got in their Table 1. I will pull this together in my own table once I have completed the T Tests.
+
+#### Variance Testing
+
+First need to test for equal/unequal variance. If any of these are lower than 2, then I can use the equal variance argument in the t test.
+
+```{r variance-tests}
+var(nonsevere.age)/var(severe.age) #greater than 2
+var(nonsevere.fever)/var(severe.fever) #less than 2
+var(severe.hgb)/var(nonsevere.hgb) #technically less than 2 but really on the line!!
+var(severe.hct)/var(nonsevere.hct) #greater than 2
+var(nonsevere.platelets)/var(severe.platelets) #less than 2
+var(severe.leukocytes)/var(nonsevere.leukocytes) #less than 2
+var(severe.ast)/var(nonsevere.ast) #far greater than 2. I am not sure why this is so large, the individual elements going into it are not weird as far as I can tell
+var(severe.sbp)/var(nonsevere.sbp) #less than 2
+var(nonsevere.alb)/var(severe.alb) #less than 2
+```
+
+#### T-Testing!
+
+Now I am performing unpaired two sample t tests. Variables with equal variances are indicated.
+
+```{r t.tests}
+t.age <- t.test(x = severe.age, y = nonsevere.age, mu = 0, alternative = "t"); t.age
+t.fever <- t.test(x = severe.fever, y = nonsevere.fever, mu = 0, var.equal = TRUE, alternative = "t"); t.fever
+t.hgb <- t.test(x = severe.hgb, y = nonsevere.hgb, mu = 0, var.equal = TRUE, alternative = "t"); t.hgb
+t.hct <- t.test(x = severe.hct, y = nonsevere.hct, mu = 0, alternative = "t"); t.hct
+t.platelets <- t.test(x = severe.platelets, y = nonsevere.platelets, mu = 0, var.equal = TRUE, alternative = "t"); t.platelets
+t.leukocytes <- t.test(x = severe.leukocytes, y = nonsevere.leukocytes, mu = 0, var.equal = TRUE, alternative = "t"); t.leukocytes
+t.ast <- t.test(x = severe.ast, y = nonsevere.ast, mu = 0, alternative = "t"); t.ast
+t.sbp <- t.test(x = severe.sbp, y = nonsevere.sbp, mu = 0, var.equal = TRUE, alternative = "t"); t.sbp
+t.alb <- t.test(x = severe.alb, y = nonsevere.alb, mu = 0, var.equal = TRUE, alternative = "t"); t.alb
+```
+
+#### Double Checking Work
+
+Comparing to Table 1, most of my p-values are spot on. However, the ones that are not var.equal=TRUE do not match. These samples do not have equal variances thus they cannot have pooled standard deviation in the t test. Just to prove a point, below I am going to perform those t.tests (age, hematocrit, and AST) with var.equal=TRUE to see if the p-values match the ones in Table 1.
+
+```{r fake-t.tests}
+t.age.fake <- t.test(x = severe.age, y = nonsevere.age, mu = 0, var.equal = TRUE, alternative = "t"); t.age.fake
+t.hct.fake <- t.test(x = severe.hct, y = nonsevere.hct, mu = 0, var.equal = TRUE, alternative = "t"); t.hct.fake
+t.ast.fake <- t.test(x = severe.ast, y = nonsevere.ast, mu = 0, var.equal = TRUE, alternative = "t"); t.ast.fake
+```
+
+I suspect that the authors used an equal variance statistical test to derive their p values. Maybe they had some reason to do that, but it is not discussed in the paper. I do not think it is warranted, especially in the case of the AST which goes from not signifcant to highly significant **and** AST has the most variance in my variance test.
+
+#### Building my Table
+
+```{r pvalues}
+p.values <- c(t.age$p.value, t.fever$p.value, t.hgb$p.value, t.hct$p.value, t.platelets$p.value, t.leukocytes$p.value, t.ast$p.value, t.sbp$p.value, t.alb$p.value)
+# p.values <- pvalString(p.values, format = "default")
+Parameters <- c("Age (years)", "Days of Fever before Admission", "Hemoglobin at Admission", "Hematocrit at Admission", "Platelets at Admission", "Total Leukocyte Count", "Asptartate Transaminase", "Percent Drop in Systolic BP", "Albumin")
+Severe_Means <- c(m.severe.age, m.severe.fever, m.severe.hgb, m.severe.hct, m.severe.platelets, m.severe.leukocytes, m.severe.ast, m.severe.sbp, m.severe.alb)
+Severe_SDs <- c(sd.severe.age, sd.severe.fever, sd.severe.hgb, sd.severe.hct, sd.severe.platelets, sd.severe.leukocytes, sd.severe.ast, sd.severe.sbp, sd.severe.alb)
+Non_Severe_Means <- c(m.nonsevere.age, m.nonsevere.fever, m.nonsevere.hgb, m.nonsevere.hct, m.nonsevere.platelets, m.nonsevere.leukocytes, m.nonsevere.ast, m.nonsevere.sbp, m.nonsevere.alb)
+Non_Severe_SDs <- c(sd.nonsevere.age, sd.nonsevere.fever, sd.nonsevere.hgb, sd.nonsevere.hct, sd.nonsevere.platelets, sd.nonsevere.leukocytes, sd.nonsevere.ast, sd.nonsevere.sbp, sd.nonsevere.alb)
+```
+
+```{r columns}
+newtable1 <- as.data.frame(cbind(Severe_Means, Severe_SDs, Non_Severe_Means, Non_Severe_SDs, p.values))
+newtable1
+```
+
+I wanted to try to make my table look a little more professional, so I found this package {pixiedust} which can easily clean up the cell values in tables, along with a lot of cool other functions.
+
+```{r naming-rows}
+library(pixiedust)
+newtable1 <- dust(newtable1) %>% 
+  sprinkle(col = 1:4, round = 2) %>% #round values in columns 1:4 to 2 decimal places
+  sprinkle(col = 5, fn = quote(pvalString(value))) %>% #format pvalue without scientific notation!
+  sprinkle_print_method("markdown")
+newtable1
+```
+
+
 ## Multiple Logistic Regression
 
 In a single logistic regression, Postural SBP is a very significant predictor of severe dengue.
