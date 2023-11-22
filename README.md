@@ -1,2 +1,2 @@
 # nmer-data-replication-assignment
-Analysis replication of Tu et al. 2018
+Analysis replication of Mahabala et al. 2023
