@@ -1,8 +1,13 @@
 ---
-title: "Mahabala.et.al_AnalysisReplication"
+title: "Mahabala et al Analysis Replication"
 author: "Nicole Merullo"
 date: "`r Sys.Date()`"
-output: html_document
+output: 
+  html_document:
+    theme: journal
+    toc: yes
+    toc_float:
+      collapsed: true
 ---
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -13,11 +18,19 @@ knitr::opts_chunk$set(echo = TRUE)
 knitr::include_graphics('https://www.cdc.gov/dengue/images/transmission/Aedes-aegypti.jpg?_=25767') 
 ```
 
-Dengue fever is a viral disease spread by mosquitoes. 10-15% of cases in humans progress to severe dengue which can result in mortality. Currently, the gold standard for severe dengue diagnosis is a rise in hematocrit. Hematocrit is a biomarker for red blood cell concentration. In severe dengue, fluid leaks from the capillaries causing a sharp increase in red blood cell concentration, measured by hematocrit and a concomitant drop in platelets. However, running these blood tests is expensive for low resource hospitals and may not be informative if a baseline hematocrit is not available. Other parameters for diagnosis for severe dengue, as recognized by World Health Organization (WHO), are abdominal pain, persistent vomiting, fluid accumulation (pleural effusion), muscosal bleeding, lethargy, and liver enlargement. Mahabala et al. (2023) propose a new diagnostic standard as a proxy for capillary leak. Loss of fluid into the interstitial space causes hypovolemia and consequently, hypotension. Orthostatic blood pressure changes (i.e., standing up) can be used instead to assess if a patient has progressed to severe dengue. 
+Dengue fever is a viral disease spread by mosquitoes. 10-15% of cases in humans progress to severe dengue which can result in death. Currently, the gold standard sign of severe dengue diagnosis is capillary leak. A common and consistent way to measure capillry leak is hematocrit. Hematocrit is a biomarker for red blood cell concentration. In severe dengue, fluid leaks from the capillaries causing a sharp increase in red blood cell concentration, followed by concomitant drop in platelets. However, running these blood tests is expensive for low resource hospitals and may not be informative if a baseline hematocrit is not available. Other parameters for diagnosis for severe dengue, as recognized by World Health Organization (WHO), are abdominal pain, persistent vomiting, fluid accumulation (pleural effusion), muscosal bleeding, lethargy, and liver enlargement (hepatomegaly). Mahabala et al. (2023) propose a new diagnostic standard as a proxy for capillary leak. Loss of fluid into the interstitial space causes hypovolemia, and consequently, hypotension. Orthostatic blood pressure changes (i.e., standing up) can be used instead to assess if a patient has progressed to severe dengue. 
 
-Mahabala et al. conducted a prospective observational study with 150 patients admitted to a hospital with dengue between 2011-2015. 23 of those patients developed severe dengue while in the study by existing WHO parameters. The researchers assessed all WHO recognized parameters of severe dengue along with postural change in systolic blood pressure (SBP) to see if their prediction that a drop in blood pressure while standing up could be used as a proxy for capillary leak experienced during severe dengue. They determined that a 10.33% postural drop in SBP was the ideal cut off between dengue and severe dengue. 
+Mahabala et al. conducted a prospective observational study with 150 patients admitted to a hospital with dengue between 2011-2015. 23 of those patients developed severe dengue while in the study as defined by existing WHO parameters. The researchers assessed all WHO recognized parameters of severe dengue along with postural change in systolic blood pressure (SBP) to see if their prediction that a drop in blood pressure while standing up could be used as a proxy for capillary leak experienced during severe dengue. They determined that a 10.33% postural drop in SBP was the ideal cut off between dengue and severe dengue. 
 
-There are two analyses I will replicate. The first is comparing mean parameters between severe dengue and non-severe dengue to determine if these were significantly different distributions. The parameters used in this analysis were age, duration of fever before admission in days, hemoglobin on admission, hematocrit on admission, platelet count on admission, total leukocyte count, aspartate transaminase, lowest platelet, percentage fall in SBP, and albumin. The second is a multiple logistic regression to identify parameters with a statistically significant adjusted odds ration of developing severe dengue. The parameters used in this analysis were rise in hematocrit, ascites/pleural effusion, postural fall in SBP, hepatomegaly, lethargy, persistent vomiting, severe abdominal pain, and mucosal bleeding. I will create an odds ratio plot to visualize this logistic regression.
+The steps I will follow are:
+
+1. **Load in the data** and look at the differences in blood pressure between severe and non severe dengue patients
+
+2. **Descriptive Statistics** of labwork based characteristics of the severe and non severe patient populations. The parameters used in this analysis were age, duration of fever before admission in days, hemoglobin on admission, hematocrit on admission, platelet count on admission, total leukocyte count, aspartate transaminase, lowest platelet, percentage fall in SBP, and albumin. These are different variables from the WHO predictors of severe dengue, and are just being used to show that the the populations are distinct
+
+3. **T Tests** to compare the means of the labwork characteristics severe and non severe patients to determine if they are significantly different from each other. I will be recreating Table 1 from the original publication.
+
+4. **Multiple Logisitic Regression** of the WHO criteria for predicting severe dengue and postural drop in SBP to determine statistically significant odds ratios of developing severe dengue. The variables used in this analysis were rise in hematocrit, ascites/pleural effusion, postural fall in SBP, hepatomegaly, lethargy, persistent vomiting, severe abdominal pain, and mucosal bleeding. I will create an odds ratio plot to visualize this logistic regression.
 
 ## Data
 
@@ -30,24 +43,32 @@ dengue <- read.csv(f, header = TRUE, sep = ",")
 head(dengue)
 summary(dengue)
 ```
-Notably, the parameters for the multiple regression are mostly entered in as 0s and 1s denoting absence or presence of the condition. These variables will need to be converted to factors for multiple logistic regression.
+Notably, the parameters for the multiple regression are mostly entered in as 0s and 1s denoting absence or presence of the condition. These variables might need to be converted to factors for multiple logistic regression, since they are classified as numbers right now.
 
-Below is some exploratory visualization of postual drop in SBP, fall percentage, and the traditional proxy for capillary leak, hematocrit. The data supplement uses PCV (packed cell volume) which is a synonym for hematocrit. People with severe dengue have higher mean postural fall in SBP, percentage of SBP fall, hematocrit at admission, and hematocrit on day 2. Further analysis is needed to see if these are statistically significant differences.
+Below is some exploratory visualization of postural drop in SBP, fall percentage, and the traditional proxy for capillary leak, hematocrit. The data supplement uses PCV (packed cell volume) which is a synonym for hematocrit. People with severe dengue have higher mean postural fall in SBP, percentage of SBP fall, hematocrit at admission, and hematocrit on day 2. Further analysis is needed to see if these are statistically significant differences.
 
-```{r exploratoryvis}
+```{r exploratory-vis}
 par(mfrow = c(1, 4))
-plot(as.factor(dengue$Severe_Dengue), dengue$Postural.SBP_Drop, xlab = "Severe Dengue", ylab = "Systolic BP Drop", col = "steelblue1")
-plot(as.factor(dengue$Severe_Dengue), dengue$Fall_Percentage, xlab = "Severe Dengue", ylab = "SBP Fall Percentage", col = "lightgoldenrod")
-plot(as.factor(dengue$Severe_Dengue), dengue$PCV_day_1, xlab = "Severe Dengue", ylab = "Hematocrit Day 1", col = "navy")
-plot(as.factor(dengue$Severe_Dengue), dengue$PCV_day_2, xlab = "Severe Dengue", ylab = "Hematocrit Day 2", col = "seashell")
+plot(
+  as.factor(dengue$Severe_Dengue), dengue$Postural.SBP_Drop, 
+  xlab = "Severe Dengue", ylab = "Systolic BP Drop", col = "steelblue1")
+plot(
+  as.factor(dengue$Severe_Dengue), dengue$Fall_Percentage,
+  xlab = "Severe Dengue", ylab = "SBP Fall Percentage", col = "lightgoldenrod")
+plot(
+  as.factor(dengue$Severe_Dengue), dengue$PCV_day_1, 
+  xlab = "Severe Dengue", ylab = "Hematocrit Day 1", col = "navy")
+plot(
+  as.factor(dengue$Severe_Dengue), dengue$PCV_day_2, 
+  xlab = "Severe Dengue", ylab = "Hematocrit Day 2", col = "seashell")
 ```
 
 ## Severe vs Non Severe Dengue
 
-It is important to first establish if the severe dengue patients and the non-severe dengue patients are actually two statistically distinct distributions. If they are not, then there is no point in determining diagnostic criteria for severe dengue. To do this, the authors compared means and standard deviations of 10 variables between the two patient groups and derived p values. The paper does not discuss how it got their p values. I will use two sample t tests to compare the two samples (severe vs non severe) for each variable. Below is the table provided by the authors:
+It is important to first establish if the severe dengue patients and the non-severe dengue patients are actually two statistically distinct distributions. If they are not, then there is no point in determining diagnostic criteria for severe dengue. To do this, the authors compared means and standard deviations of 10 variables between the two patient groups and derived p values. The paper does not discuss how it got their p values. I will use two sample t tests to compare the two samples (severe vs non severe) for each variable except lowest platelets, which were not reported in the data set. Below is the table provided by the authors:
 
 ```{r table1, echo=FALSE, fig.align='center', out.width='85%'}
-knitr::include_graphics('https://github.com/nmerullo/nmer-data-replication-assignment/blob/main/Mahabala-et-al-2023_Table1.png?raw=true') 
+knitr::include_graphics('https://github.com/nmerullo/nmer-data-replication-assignment/blob/main/Mahabala-et-al-2023_Table1.png?raw=true')
 ```
 
 ### Subset Samples
@@ -70,9 +91,11 @@ head(nonsevere.dengue)
 
 Next I am calculating the mean and standard deviation for each of the parameters in Table 1 for each population. The data supplement does not include a column for lowest platelet count and does not include how they derived this value for each sample, so I am excluding it for this analysis.
 
-#### Creating objects for each of the variables for severe dengue:
+#### Severe - Objects 
 
-```{r severedenguevariables}
+Creating objects for each of the variables for severe dengue:
+
+```{r severe-dengue-variables}
 severe.age <- severe.dengue$Age
 severe.fever <- severe.dengue$f_adm
 severe.hgb <- severe.dengue$Hb_day_1
@@ -84,9 +107,11 @@ severe.sbp <- severe.dengue$Fall_Percentage
 severe.alb <- severe.dengue$Albumin
 ```
 
-#### Next up, means for each of these variables:
+#### Severe - Means
 
-```{r severedenguemeans}
+Next up, means for each of these variables:
+
+```{r severe-dengue-means}
 m.severe.age <- mean(severe.age)
 m.severe.fever <- mean(severe.fever)
 m.severe.hgb <- mean(severe.hgb)
@@ -98,9 +123,11 @@ m.severe.sbp <- mean(severe.sbp)
 m.severe.alb <- mean(severe.alb)
 ```
 
-#### And finally, standard deviations for each of these!
+#### Severe - Standard Deviations
 
-```{r severedengueSDs}
+And finally, standard deviations for each of these!
+
+```{r severe-dengue-SDs}
 sd.severe.age <- sd(severe.age)
 sd.severe.fever <- sd(severe.fever)
 sd.severe.hgb <- sd(severe.hgb)
@@ -116,9 +143,11 @@ sd.severe.alb <- sd(severe.alb)
 
 I will repeat the above for the non severe sample, again excluding lowest platelet count.
 
-#### Creating objects for each of the variables for severe dengue:
+#### Non Severe - Objects
 
-```{r nonseveredenguevariables}
+Creating objects for each of the variables for severe dengue:
+
+```{r nonsevere-dengue-variables}
 nonsevere.age <- nonsevere.dengue$Age
 nonsevere.fever <- nonsevere.dengue$f_adm
 nonsevere.hgb <- nonsevere.dengue$Hb_day_1
@@ -130,9 +159,11 @@ nonsevere.sbp <- nonsevere.dengue$Fall_Percentage
 nonsevere.alb <- nonsevere.dengue$Albumin
 ```
 
-#### Means for non severe dengue variables:
+#### Non Severe - Means
 
-```{r nonseveredenguemeans}
+Means for non severe dengue variables:
+
+```{r nonsevere-dengue-means}
 m.nonsevere.age <- mean(nonsevere.age)
 m.nonsevere.fever <- mean(nonsevere.fever)
 m.nonsevere.hgb <- mean(nonsevere.hgb)
@@ -144,9 +175,10 @@ m.nonsevere.sbp <- mean(nonsevere.sbp)
 m.nonsevere.alb <- mean(nonsevere.alb)
 ```
 
-#### Standard deviations for non severe dengue variables
+#### Non Severe - Standard Deviations
+Standard deviations for non severe dengue variables
 
-```{r nonseveredengueSDs}
+```{r nonsevere-dengue-SDs}
 sd.nonsevere.age <- sd(nonsevere.age)
 sd.nonsevere.fever <- sd(nonsevere.fever)
 sd.nonsevere.hgb <- sd(nonsevere.hgb)
@@ -158,11 +190,11 @@ sd.nonsevere.sbp <- sd(nonsevere.sbp)
 sd.nonsevere.alb <- sd(nonsevere.alb)
 ```
 
-### T Tests
+## T Tests
 
 Ok so far so good. My means and standard deviations are both matching with what the authors got in their Table 1. I will pull this together in my own table once I have completed the T Tests.
 
-#### Variance Testing
+### Variance Testing
 
 First need to test for equal/unequal variance. If any of these are lower than 2, then I can use the equal variance argument in the t test.
 
@@ -173,58 +205,90 @@ var(severe.hgb)/var(nonsevere.hgb) #technically less than 2 but really on the li
 var(severe.hct)/var(nonsevere.hct) #greater than 2
 var(nonsevere.platelets)/var(severe.platelets) #less than 2
 var(severe.leukocytes)/var(nonsevere.leukocytes) #less than 2
-var(severe.ast)/var(nonsevere.ast) #far greater than 2. I am not sure why this is so large, the individual elements going into it are not weird as far as I can tell
+var(severe.ast)/var(nonsevere.ast) #far greater than 2!
 var(severe.sbp)/var(nonsevere.sbp) #less than 2
 var(nonsevere.alb)/var(severe.alb) #less than 2
 ```
 
-#### T-Testing!
+### T-Testing!
 
 Now I am performing unpaired two sample t tests. Variables with equal variances are indicated.
 
 ```{r t.tests}
-t.age <- t.test(x = severe.age, y = nonsevere.age, mu = 0, alternative = "t"); t.age
-t.fever <- t.test(x = severe.fever, y = nonsevere.fever, mu = 0, var.equal = TRUE, alternative = "t"); t.fever
-t.hgb <- t.test(x = severe.hgb, y = nonsevere.hgb, mu = 0, var.equal = TRUE, alternative = "t"); t.hgb
-t.hct <- t.test(x = severe.hct, y = nonsevere.hct, mu = 0, alternative = "t"); t.hct
-t.platelets <- t.test(x = severe.platelets, y = nonsevere.platelets, mu = 0, var.equal = TRUE, alternative = "t"); t.platelets
-t.leukocytes <- t.test(x = severe.leukocytes, y = nonsevere.leukocytes, mu = 0, var.equal = TRUE, alternative = "t"); t.leukocytes
-t.ast <- t.test(x = severe.ast, y = nonsevere.ast, mu = 0, alternative = "t"); t.ast
-t.sbp <- t.test(x = severe.sbp, y = nonsevere.sbp, mu = 0, var.equal = TRUE, alternative = "t"); t.sbp
-t.alb <- t.test(x = severe.alb, y = nonsevere.alb, mu = 0, var.equal = TRUE, alternative = "t"); t.alb
+t.age <- t.test(x = severe.age, y = nonsevere.age, 
+                mu = 0, alternative = "t"); t.age
+t.fever <- t.test(x = severe.fever, y = nonsevere.fever, 
+                  mu = 0, var.equal = TRUE, alternative = "t"); t.fever
+t.hgb <- t.test(x = severe.hgb, y = nonsevere.hgb, 
+                mu = 0, var.equal = TRUE, alternative = "t"); t.hgb
+t.hct <- t.test(x = severe.hct, y = nonsevere.hct, 
+                mu = 0, alternative = "t"); t.hct
+t.platelets <- t.test(x = severe.platelets, y = nonsevere.platelets, 
+                      mu = 0, var.equal = TRUE, alternative = "t"); t.platelets
+t.leukocytes <- t.test(x = severe.leukocytes, y = nonsevere.leukocytes, 
+                       mu = 0, var.equal = TRUE, alternative = "t"); t.leukocytes
+t.ast <- t.test(x = severe.ast, y = nonsevere.ast, 
+                mu = 0, alternative = "t"); t.ast
+t.sbp <- t.test(x = severe.sbp, y = nonsevere.sbp, 
+                mu = 0, var.equal = TRUE, alternative = "t"); t.sbp
+t.alb <- t.test(x = severe.alb, y = nonsevere.alb, 
+                mu = 0, var.equal = TRUE, alternative = "t"); t.alb
 ```
 
-#### Double Checking Work
+### Double Checking Work
 
 Comparing to Table 1, most of my p-values are spot on. However, the ones that are not var.equal=TRUE do not match. These samples do not have equal variances thus they cannot have pooled standard deviation in the t test. Just to prove a point, below I am going to perform those t.tests (age, hematocrit, and AST) with var.equal=TRUE to see if the p-values match the ones in Table 1.
 
 ```{r fake-t.tests}
-t.age.fake <- t.test(x = severe.age, y = nonsevere.age, mu = 0, var.equal = TRUE, alternative = "t"); t.age.fake
-t.hct.fake <- t.test(x = severe.hct, y = nonsevere.hct, mu = 0, var.equal = TRUE, alternative = "t"); t.hct.fake
-t.ast.fake <- t.test(x = severe.ast, y = nonsevere.ast, mu = 0, var.equal = TRUE, alternative = "t"); t.ast.fake
+t.age.fake <- t.test(x = severe.age, y = nonsevere.age, 
+                     mu = 0, var.equal = TRUE, alternative = "t"); t.age.fake
+t.hct.fake <- t.test(x = severe.hct, y = nonsevere.hct, 
+                     mu = 0, var.equal = TRUE, alternative = "t"); t.hct.fake
+t.ast.fake <- t.test(x = severe.ast, y = nonsevere.ast, 
+                     mu = 0, var.equal = TRUE, alternative = "t"); t.ast.fake
 ```
 
-I suspect that the authors used an equal variance statistical test to derive their p values. Maybe they had some reason to do that, but it is not discussed in the paper. I do not think it is warranted, especially in the case of the AST which goes from not signifcant to highly significant **and** AST has the most variance in my variance test.
+I suspect that the authors used an equal variance statistical test to derive their p values. Maybe they had some reason to do that, but it is not discussed in the paper. I do not think it is warranted, especially in the case of the AST which goes from not significant to highly significant **and** AST has the most variance in my variance test.
 
-#### Building my Table
+### Building my Table
 
 First I need to compile each column variable. These are the p values, the t statistic (not originally included in the paper but it is good practice to include them), the severe dengue means, the non severe dengue means, the severe dengue standard deviations, and the non severe dengue standard deviations. I also included a character vector for the names of the rows.
 
 ```{r columns}
-library(pixiedust)
-p.values <- c(t.age$p.value, t.fever$p.value, t.hgb$p.value, t.hct$p.value, t.platelets$p.value, t.leukocytes$p.value, t.ast$p.value, t.sbp$p.value, t.alb$p.value) %>% 
-  pvalString(format = "default")
-t_Scores <- c(t.age$statistic, t.fever$statistic, t.hgb$statistic, t.hct$statistic, t.platelets$statistic, t.leukocytes$statistic, t.ast$statistic, t.sbp$statistic, t.alb$statistic) %>% 
+library(pixiedust) #for reformating the p values! super helpful
+p.values <- c(
+  t.age$p.value, t.fever$p.value, t.hgb$p.value, t.hct$p.value, 
+  t.platelets$p.value, t.leukocytes$p.value, t.ast$p.value, t.sbp$p.value, 
+  t.alb$p.value) %>% 
+  pvalString(format = "default") #creates a nice looking p value
+t_Scores <- c(
+  t.age$statistic, t.fever$statistic, t.hgb$statistic, t.hct$statistic, 
+  t.platelets$statistic, t.leukocytes$statistic, t.ast$statistic, 
+  t.sbp$statistic, t.alb$statistic) %>% 
   round(digits = 2) #not included in original table but should be!
-Severe_Means <- c(m.severe.age, m.severe.fever, m.severe.hgb, m.severe.hct, m.severe.platelets, m.severe.leukocytes, m.severe.ast, m.severe.sbp, m.severe.alb) %>% 
+Severe_Means <- c(
+  m.severe.age, m.severe.fever, m.severe.hgb, m.severe.hct, m.severe.platelets,
+  m.severe.leukocytes, m.severe.ast, m.severe.sbp, m.severe.alb) %>% 
   round(digits = 2)
-Severe_SDs <- c(sd.severe.age, sd.severe.fever, sd.severe.hgb, sd.severe.hct, sd.severe.platelets, sd.severe.leukocytes, sd.severe.ast, sd.severe.sbp, sd.severe.alb) %>% 
+Severe_SDs <- c(
+  sd.severe.age, sd.severe.fever, sd.severe.hgb, sd.severe.hct, 
+  sd.severe.platelets, sd.severe.leukocytes, sd.severe.ast, sd.severe.sbp, 
+  sd.severe.alb) %>% 
   round(digits = 2)
-Non_Severe_Means <- c(m.nonsevere.age, m.nonsevere.fever, m.nonsevere.hgb, m.nonsevere.hct, m.nonsevere.platelets, m.nonsevere.leukocytes, m.nonsevere.ast, m.nonsevere.sbp, m.nonsevere.alb) %>% 
+Non_Severe_Means <- c(
+  m.nonsevere.age, m.nonsevere.fever, m.nonsevere.hgb, m.nonsevere.hct, 
+  m.nonsevere.platelets, m.nonsevere.leukocytes, m.nonsevere.ast, 
+  m.nonsevere.sbp, m.nonsevere.alb) %>% 
   round(digits = 2)
-Non_Severe_SDs <- c(sd.nonsevere.age, sd.nonsevere.fever, sd.nonsevere.hgb, sd.nonsevere.hct, sd.nonsevere.platelets, sd.nonsevere.leukocytes, sd.nonsevere.ast, sd.nonsevere.sbp, sd.nonsevere.alb) %>% 
+Non_Severe_SDs <- c(
+  sd.nonsevere.age, sd.nonsevere.fever, sd.nonsevere.hgb, sd.nonsevere.hct, 
+  sd.nonsevere.platelets, sd.nonsevere.leukocytes, sd.nonsevere.ast, 
+  sd.nonsevere.sbp, sd.nonsevere.alb) %>% 
   round(digits = 2)
-Parameters <- c("Age (years)", "Days of Fever before Admission", "Hemoglobin at Admission", "Hematocrit at Admission", "Platelets at Admission", "Total Leukocyte Count", "Asptartate Transaminase", "Percent Drop in Systolic BP", "Albumin")
+Parameters <- c(
+  "Age (years)", "Days of Fever before Admission", "Hemoglobin at Admission", 
+  "Hematocrit at Admission", "Platelets at Admission", "Total Leukocyte Count", 
+  "Asptartate Transaminase", "Percent Drop in Systolic BP", "Albumin")
 ```
 
 After some playing around with the formatting of the table, I added rounding and formatting to each variable to clean it up. I was trying to do this after after column binding them into the table and it was not working very well because it would switch the class to character instead of numeric. I also found this package {pixiedust} which has a lot of functions to clean up and format tables. I was experimenting with these functions, but they did not have a row name function so ultimately I only used their built in p-value formatting function, which admittedly is incredibly convenient!
@@ -232,7 +296,10 @@ After some playing around with the formatting of the table, I added rounding and
 Next I column bind the column variables together and coerce it into a data frame. I named it newtable1 because this is my IMPROVED version of the paper's table 1. 
 
 ```{r create-table}
-newtable1 <- data.frame(cbind(Severe_Means, Severe_SDs, Non_Severe_Means, Non_Severe_SDs, t_Scores, p.values))
+newtable1 <- data.frame(
+  cbind(
+    Severe_Means, Severe_SDs, Non_Severe_Means, 
+                              Non_Severe_SDs, t_Scores, p.values))
 newtable1
 ```
 
@@ -242,39 +309,390 @@ Finally, named the rows and columns.
 
 ```{r naming-rows}
 rownames(newtable1) <- Parameters
-colnames(newtable1) <- c(Severe_Means = "Severe Mean", Severe_SDs = "Severe SD", Non_Severe_Means = "Non-Severe Mean", Non_Severe_SDs = "Non-Severe SD", t_scores = "T Statistic", p.values = "p Values")
+colnames(newtable1) <- c(Severe_Means = "Severe Mean", Severe_SDs = "Severe SD", 
+                         Non_Severe_Means = "Non-Severe Mean", 
+                         Non_Severe_SDs = "Non-Severe SD", 
+                         t_scores = "T Statistic", p.values = "p Values")
 newtable1
 ```
 
 I think this looks pretty good! But I think it could look even better. I found a package {gt} that makes pretty tables. 
 
+I tried using a pipe here, but it would only run without the pipes.
+
+```{r gt}
+library(gt)
+newtable1 <- gt(newtable1, rownames_to_stub = TRUE)
+newtable1 <- tab_header(newtable1, title = "Parameters of Severe and Non Severe Dengue")
+newtable1 <- tab_style(newtable1,
+    style = list(cell_fill(color = "tan1"),
+                 cell_text(weight = "bold")),
+    locations = cells_body(columns = "p Values", 
+                           rows = c(1, 3, 4, 5, 6, 8, 9)))
+newtable1
+```
+
+Now it's a lot easier to read and the significant values are highlighted. Based on this, age, hemoglobin, hematocrit, platelets, leukocytes, AST, percent drop in SBP, and albumin are all significantly different in patients with severe dengue based on an alpha value of 0.05. In other words:
+
+1. Severe dengue patients are significantly younger than non severe dengue patients (this is pretty weird and might be quirk of the data but just shows that dengue can strike anyone, young or old).
+
+2. Severe dengue patients have significantly higher levels of hemoglobin (red blood cells) at admission to the hospital.
+
+3. Severe dengue patients have significantly higher levels of hematocrit (percent of red blood cells in blood) at admission to the hospital. This is a measure of capillary leak. We should ask, because rise in hematocrit is a WHO predictor of severe dengue, if these hematocrit levels can be expected to rise further in severe patients? Will that show up in the logisitic regression?
+
+4. Severe dengue patients have significantly lower levels of platelets at admission to the hospital. This is another sign of capillary leak.
+
+5. Severe dengue patients have significantly higher levels of leukocytes (white blood cells). This is a sign that the immune system is in overdrive.
+
+6. Severe dengue patients have significantly higher percent drop in systolic blood pressure. This is the proposed proxy of capillary leak (via hypovolemia) by the authors.
+
+7. Severe dengue patients have significantly lower serum albumin than non severe dengue patients. Serum albumin is biomarker of liver function. Low albumin is a sign of potential liver damage. 
+
+Interestingly, high AST is also a sign of liver damage so I would expect that if albumin is significant, then AST would also be significant. Certainly severe dengue patients had very high levels of AST. And anecdotally, based on my own clinical experience, these values would be indicative of liver damage and possibly liver failure (I am not a physician, but I would like to see a full liver panel). Perhaps the reason we are not seeing significance is the extremely large standard deviation for the severe dengue patients. Below I have played with a bunch of the numbers for the severe AST sample, just to get an idea of the sample. This is a huge distribution; it probably almost completely engulfs the non-severe AST distribution
+
+```{r ast}
+severe.ast
+range(severe.ast)
+m.severe.ast
+var(severe.ast)
+sd.severe.ast
+```
+
 ## Multiple Logistic Regression
 
-In a single logistic regression, Postural SBP is a very significant predictor of severe dengue.
-```{r}
-# glm of Severe Dengue ~ Postural Systolic BP Drop
-glm <- glm(data = dengue, Severe_Dengue ~ Postural.SBP_Drop, family = "binomial")
+Next, I am recreating the multiple logistic regression from the paper. This compares WHO diagnostic parameters for predicting severe dengue with the authors new (low cost, less invasive) diagnostic parameter, drop in postural systolic blood pressure. These variables are different from the previous analysis because instead of looking at characteristics of the severe vs non severe patients samples and comparing them, I am looking at symptoms across the entire patient sample and seeing if those symptoms are predictive of progressing to severe dengue. These symptoms, according to WHO should have a high odds in predicting an outcome of severe dengue (an odds ratio >1). 
+
+```{r table3-1, echo=FALSE, fig.align='center', out.width='85%'}
+knitr::include_graphics('https://github.com/nmerullo/nmer-data-replication-assignment/blob/main/Mahabala-et-al-2023_Table3.png?raw=true')
+```
+
+Note: There are three possible variables for Drop if Postural SBP in the data set. The one mentioned in the paper for this analysis is "Postural Fall ins SBP." This could the absolute number in mmHg, the percent fall, or the binary over or under 10.33% determined to be the threshold. All three are recorded in the data. I originally tried the absolute number, which is logged as "Postural.SBP_Drop" which matches the table language very closely! however after getting results very different from the paper and thinking about how weird it was that all of the variables were binary 0s and 1s, I realized it was more than likely the "Postural.SBPFall..10.33." variable which indicates the presence of a 10.33% drop in blood pressure when standing up or absence. The results are better! Drop in SBP is now significant just like in the paper.
+
+In a single logistic regression, Drop in Postural SBP is a very significant predictor of severe dengue.
+
+```{r single-regression}
+glm <- glm(data = dengue, as.factor(Severe_Dengue) ~ Postural.SBPFall..10.33., 
+           family = "binomial")
 summary(glm)
 ```
-multiple logistic regression:
-```{r}
-dengue$Hct_Rise <- as.factor(dengue$Hct_Rise)  # making all of 1/0 columns factors
-dengue$Ascite_Efusion <- as.factor(dengue$Ascite_Efusion)
-dengue$Hepatomegaly <- as.factor(dengue$Hepatomegaly)
-dengue$Lethargy <- as.factor(dengue$Lethargy)
-dengue$Severe.Vomiting <- as.factor(dengue$Severe.Vomiting)
-dengue$Severe.Abdominal.pain <- as.factor(dengue$Severe.Abdominal.pain)
-dengue$Mucosal.Bleeding <- as.factor(dengue$Mucosal.Bleeding)
-glm.dengue <- glm(data = dengue, formula = Severe_Dengue ~ Hct_Rise + Postural.SBP_Drop + Ascite_Efusion + Hepatomegaly + Lethargy + Severe.Vomiting + Severe.Abdominal.pain + Mucosal.Bleeding, family = binomial)
+
+For clarity, the established WHO symptoms/variables and what they represent are below:
+
+1. Hct Rise = Presence/Absence of rise in hematocrit while in the hospital. A rise in the concentration of red blood cells due to capillary leak caused by dengue.
+
+2. Ascite/Efusion = Presence/absence of fluid accumulation in the body. Pleural efusion is the build up of fluid around the lungs (can cause breathing difficulty). This is likely also the result of capillary leak- when fluid leaks out of the capillaries it enters the interstitial spaces of the body causing swelling.
+
+3. Hepatomegaly = Presence/absence of a swollen liver. This can be a sign of liver damage. This is why labwork is looking at albumin and AST. This can also be assessed through a physical examination.
+
+4. Lethargy = Presence/absence of fatigue.
+
+5. Severe Vomiting = Presence/absence of persistent vomiting. Not sure what the threshold is between severe and non-severe vomiting but it might be a qualitative decision by the provider.
+
+6. Severe abdominal pain = Presence/absence of severe abdominal pain. Assessed via self report of patient.
+
+7. Mucosal bleeding = Presence/absence of bleeding from mucusal surface (like gums). A result of capillary leak.
+
+
+```{r multiple-log-reg}
+glm.dengue <- glm(data = dengue, 
+                  formula = as.factor(Severe_Dengue) ~ Hct_Rise + 
+                    Postural.SBPFall..10.33. + 
+                    Ascite_Efusion + 
+                    Hepatomegaly + 
+                    Lethargy + 
+                    Severe.Vomiting + 
+                    Severe.Abdominal.pain + 
+                    Mucosal.Bleeding, 
+                  family = binomial)
 summary(glm.dengue)
 ```
 
+The AIC is lower, which indicates a better model. We are not over-fitting despite many more variables. However, the only significant relationships are ascites/effusion and mucusal bleeding. Not having any of these also has a strongly significant relationship for not developing severe dengue.
+
+Here is a tidied up version of this output, with confidence intervals, because why not:
+
+```{r tidying}
+library(broom)
+tidied.glm <- tidy(glm.dengue, conf.int = TRUE); tidied.glm
+```
 
 ## Odds ratios
 
-An odds ratio is the odds of an outcome given an exposure compared to the lack of that exposure. An odds ratio greater than 1 means there is a associated odds of that outcome happening. An odds ratio less than 1 means there is a lower odds. An odds ratio equal to 1 does not affect the outcome. A wide CI indicates a low level of precision in the odds ratio. A narrow CI indicates high precision in the odds ratio. In the dengue case, Mahabala et al. would predict a high odds of postural fall in SBP associated with severe dengue, and therefore a high odds ratio (over 1). They might also expect the hematocrit to have a high odds ratio since it is also a proxy of capillary leak and therefore both are measurable manifestations of the same underlying symptom.
+An odds ratio is the odds of an outcome given an exposure compared to the lack of that exposure. An odds ratio greater than 1 means there is a associated odds of that outcome happening. Less than 1 means there is a lower odds. Equal to 1 does not affect the outcome. A wide CI indicates a low level of precision in the odds ratio. A narrow CI indicates high precision in the odds ratio. In the dengue case, Mahabala et al. would predict a high odds of postural fall in SBP associated with severe dengue, and therefore a high odds ratio (over 1). They might also expect the hematocrit to have a high odds ratio since it is also a proxy of capillary leak and therefore both are measurable manifestations of the same underlying symptom.
 
-```{r}
-coeffs <- glm.dengue$coefficients
-coeffs
+```{r coeffs}
+coeffs <- glm.dengue$coefficients; coeffs
 ```
+
+```{r ORs}
+ORs <- exp(coeffs); ORs
+```
+
+```{r OR-CI}
+OR.CI <- exp(confint(glm.dengue)); OR.CI
+```
+
+### Double Checking
+
+Because these results are pretty much completely different from what Mahabala et al. got, I am going to try one more thing, which is setting all of the predictor variables to factors that are discrete variables (so everything except Postural SBP drop). In the original data set, these discrete variables are all logged as 0s and 1s so I don't think it should make a difference but I want to be sure.
+
+```{r glm-dengue-factored}
+glm.dengue.factored <- glm(data = dengue, 
+                  formula = as.factor(Severe_Dengue) ~ as.factor(Hct_Rise) + 
+                    Postural.SBPFall..10.33. + 
+                    as.factor(Ascite_Efusion) + 
+                    as.factor(Hepatomegaly) + 
+                    as.factor(Lethargy) + 
+                    as.factor(Severe.Vomiting) + 
+                    as.factor(Severe.Abdominal.pain) + 
+                    as.factor(Mucosal.Bleeding), 
+                  family = binomial)
+summary(glm.dengue.factored)
+```
+
+```{r factored-coeffs}
+factoredcoeffs <- glm.dengue.factored$coefficients
+comparedLogOdds <- cbind(coeffs, factoredcoeffs); comparedLogOdds
+```
+
+Those match!
+
+And to be sure it is not affecting the odds ratios or confidence intervals, I will do the same procedure as I did before with the odds ratios.
+
+```{r factored-ORs}
+ORs.factored <- exp(factoredcoeffs)
+comparedORs <- cbind(ORs, ORs.factored); comparedORs
+```
+Those match too!
+
+```{r Factored-OR-CI}
+OR.CI.factored <- exp(confint(glm.dengue.factored))
+comparedCIs <- cbind(OR.CI, OR.CI.factored); comparedCIs
+```
+
+The results are the same with factoring the variables or not.
+
+## Odds Ratio Plot
+
+Now let's make a plot of the odds ratios using {ggstats}
+
+```{r coeff-model}
+library(ggstats)
+ggcoef_model(glm.dengue,
+             exponentiate = TRUE,
+             variable_labels = c(Hct_Rise = "Hematocrit Rise", 
+                                 Postural.SBPFall..10.33. = "Drop in Systolic BP >10.33%", 
+                                 Ascite_Efusion = "Ascites/Effusion", 
+                                 Hepatomegaly = "Hepatomegaly",
+                                 Lethargy = "Lethargy",
+                                 Severe.Vomiting = "Severe Vomiting",
+                                 Severe.Abdominal.pain = "Severe Abdominal Pain",
+                                 Mucosal.Bleeding = "Mucosal Bleeding"))
+```
+
+That looks great, but the ggcoef_table() function makes it look a little prettier and gives us more information.
+
+```{r coef-table}
+ggcoef_table(glm.dengue, 
+             exponentiate = TRUE,
+             variable_labels = c(Hct_Rise = "Hematocrit Rise", 
+                                 Postural.SBPFall..10.33. = "Drop in Systolic BP >10.33%", 
+                                 Ascite_Efusion = "Ascites/Effusion", 
+                                 Hepatomegaly = "Hepatomegaly",
+                                 Lethargy = "Lethargy",
+                                 Severe.Vomiting = "Severe Vomiting",
+                                 Severe.Abdominal.pain = "Severe Abdominal Pain",
+                                 Mucosal.Bleeding = "Mucosal Bleeding"),
+             signif_stars = TRUE, 
+             plot_title = "Odds Ratios of Variables Predicting Severe Dengue")
+```
+
+Ok so revisiting the results from the paper:
+
+```{r table3-2, echo=FALSE, fig.align='center', out.width='85%'}
+knitr::include_graphics('https://github.com/nmerullo/nmer-data-replication-assignment/blob/main/Mahabala-et-al-2023_Table3.png?raw=true')
+```
+
+With the exception of rise in hematocrit, this looks great! The odds ratios match and I got the same significant predictor variables. The ocnfidence intervals are a little different. Despite minor differences, all of the p valeues are the same!
+
+## Interpretation
+
+Originally when I did this and was using the absolute drop in blood pressure (continuous variable basically) it was not significant and the odds ratio was just around 1, so essentially no prediction of severe dengue. I still found ascites/effusion to be significant with a high odds and also found mucosal bleeding to be signficant as well. I still can't explain why our Wald statistics and confidence intervals are completely different, but it could be differences between SPSS and R. Interestingly, Lethargy has an even larger 95% CI in the original analysis than mine.
+
+From a medical perspective both of these results (drop in BP and ascites/effusion) make sense.
+
+As fluid leaks from capillaries due to endothelial tissue injury, blood volume decreases and blood pressure accordingly decreases. When you stand, the force of gravity pulls fluid to the ground more and blood pressure higher up in your body decreases accordingly.
+
+Ascites are fluid accumulation which can be assessed via physical examination and palpation of the abdomen. This would directly indicate capillary leak (fluid leaking from the capillaries into the interstitial spaces).
+
+I am surprised that rise in hematocrit is not a better predictors of severe dengue because is does seem like it would be directly related to capillary leak but with an odds ratios just under 1, that suggests it lowers the odds of having severe dengue (unlikely in real world?). This is particularly concerning considering hematocrit is currently a heavily realied upon method for diagnosing severe dengue. It's possible people with severe dengue were admitted to the hospital with already high hematocrit levels, so they did not have a rise while in the hospital, but they would still be recorded as a severe case. Looking at my boxplots at the very beginning this looks possible, especially considering the paper reports that it would have to be increase of 20% to be logged as a rise (a 1 vs a 0). Notably, the original paper did not find Hematocrit significant either, but the odds ratio is higher (2.151 in Mahabala et al. vs 0.5 in my analysis). The authors say this is likely because sensitivity is low. Other studies report mixed results in the predictive power of hematocrit.
+
+## I am Crazy but I am Free
+
+There is TWO MORE things I want to see.
+
+1. Changing the Postural Fall in SBP variable. Like I have mentioned, this dataset has three different ways of looking at this. The other two are the actual value in how much the blood pressure falls and the percent drop in SBP. They used the percent fall in the descriptive statistics. I am totally unclear on why they would change which one they would look at, but they are looking at different variables for each analysis.
+
+2. Releveling the variables to reference the presence of that condition instead of the absence. I was looking into the difference between SPSS and R and why they produce difference results with multiple logistic regression and this came up as a potential reason. I am curious if this will have any effect.
+
+### Percent Change in SBP
+
+```{r glm-mod1}
+glm.dengue.mod1 <- glm(data = dengue, 
+                  formula = as.factor(Severe_Dengue) ~ Hct_Rise + 
+                    Fall_Percentage + 
+                    Ascite_Efusion + 
+                    Hepatomegaly + 
+                    Lethargy + 
+                    Severe.Vomiting + 
+                    Severe.Abdominal.pain + 
+                    Mucosal.Bleeding, 
+                  family = binomial)
+summary(glm.dengue.mod1)
+coeffs.mod1 <- glm.dengue.mod1$coefficients
+ORs.mod1 <- exp(coeffs.mod1)
+OR.CI.mod1 <- exp(confint(glm.dengue.mod1))
+cbind(ORs.mod1, OR.CI.mod1)
+```
+
+```{r coef.table.mod1}
+ggcoef_table(glm.dengue.mod1, 
+             exponentiate = TRUE,
+             variable_labels = c(Hct_Rise = "Hematocrit Rise", 
+                                 Fall_Percentage = "Fall Percentage", 
+                                 Ascite_Efusion = "Ascites/Effusion", 
+                                 Hepatomegaly = "Hepatomegaly",
+                                 Lethargy = "Lethargy",
+                                 Severe.Vomiting = "Severe Vomiting",
+                                 Severe.Abdominal.pain = "Severe Abdominal Pain",
+                                 Mucosal.Bleeding = "Mucosal Bleeding"),
+             signif_stars = TRUE, 
+             plot_title = "Odds Ratios of Variables Predicting Severe Dengue")
+```
+
+Ok that is less predictive of severe dengue and changes the odds of other variables. It also has a slightly higher AIC, but only very slightly. What if I do both fall percentage and drop in SBP over 10.33%?
+
+```{r glm-mod2}
+glm.dengue.mod2 <- glm(data = dengue, 
+                  formula = as.factor(Severe_Dengue) ~ Hct_Rise + 
+                    Fall_Percentage +
+                    Postural.SBPFall..10.33. +
+                    Ascite_Efusion + 
+                    Hepatomegaly + 
+                    Lethargy + 
+                    Severe.Vomiting + 
+                    Severe.Abdominal.pain + 
+                    Mucosal.Bleeding, 
+                  family = binomial)
+summary(glm.dengue.mod2)
+coeffs.mod2 <- glm.dengue.mod2$coefficients
+ORs.mod2 <- exp(coeffs.mod2)
+OR.CI.mod2 <- exp(confint(glm.dengue.mod2))
+cbind(ORs.mod2, OR.CI.mod2)
+```
+
+```{r coef.table.mod2}
+ggcoef_table(glm.dengue.mod2, 
+             exponentiate = TRUE,
+             variable_labels = c(Hct_Rise = "Hematocrit Rise", 
+                                 Fall_Percentage = "Fall Percentage",
+                                 Postural.SBPFall..10.33. = "Drop in Systolic BP >10.33%",
+                                 Ascite_Efusion = "Ascites/Effusion", 
+                                 Hepatomegaly = "Hepatomegaly",
+                                 Lethargy = "Lethargy",
+                                 Severe.Vomiting = "Severe Vomiting",
+                                 Severe.Abdominal.pain = "Severe Abdominal Pain",
+                                 Mucosal.Bleeding = "Mucosal Bleeding"),
+             signif_stars = TRUE, 
+             plot_title = "Odds Ratios of Variables Predicting Severe Dengue")
+```
+
+That AIC is higher than the original multiple logistic regression but lower than the last one. The odds ratio is now 30 (!) for drop in systolic bp >10.33% but the fall percentage is 0.9 which means it is not predictive of severe dengue, nor is this significant. 
+
+What if I do all three variables for drop in systolic BP?
+
+```{r glm-mod3}
+glm.dengue.mod3 <- glm(data = dengue, 
+                  formula = as.factor(Severe_Dengue) ~ Hct_Rise + 
+                    Fall_Percentage +
+                    Postural.SBPFall..10.33. +
+                    Postural.SBP_Drop +
+                    Ascite_Efusion + 
+                    Hepatomegaly + 
+                    Lethargy + 
+                    Severe.Vomiting + 
+                    Severe.Abdominal.pain + 
+                    Mucosal.Bleeding, 
+                  family = binomial)
+summary(glm.dengue.mod3)
+coeffs.mod3 <- glm.dengue.mod1$coefficients
+ORs.mod3 <- exp(coeffs.mod3)
+OR.CI.mod3 <- exp(confint(glm.dengue.mod3))
+cbind(ORs.mod3, OR.CI.mod3)
+```
+
+```{r coef.table.mod3}
+ggcoef_table(glm.dengue.mod3, 
+             exponentiate = TRUE,
+             variable_labels = c(Hct_Rise = "Hematocrit Rise", 
+                                 Fall_Percentage = "Fall Percentage",
+                                 Postural.SBPFall..10.33. = "Drop in Systolic BP >10.33%",
+                                 Postural.SBP_Drop = "Drop in SBP",
+                                 Ascite_Efusion = "Ascites/Effusion", 
+                                 Hepatomegaly = "Hepatomegaly",
+                                 Lethargy = "Lethargy",
+                                 Severe.Vomiting = "Severe Vomiting",
+                                 Severe.Abdominal.pain = "Severe Abdominal Pain",
+                                 Mucosal.Bleeding = "Mucosal Bleeding"),
+             signif_stars = TRUE, 
+             plot_title = "Odds Ratios of Variables Predicting Severe Dengue")
+```
+
+I'm not going to say this is good practice or that this is the best model, but this was fun to see. This last one has the lower AIC score but I would have to perform goodness of fit tests to know for sure. Drop in systolic BP >10.33% having an OR of 46.5 is bonkers. 
+
+### Releveling
+
+I am going to use the original model to relevel to see if I get closer to the original results with Hct rise and the CIs/wald stats.
+
+```{r revel}
+dengue$Hct_Rise <- relevel(as.factor(dengue$Hct_Rise), ref = 1)
+dengue$Postural.SBPFall..10.33. <- relevel(as.factor(dengue$Postural.SBPFall..10.33.), ref = 1)
+dengue$Ascite_Efusion <- relevel(as.factor(dengue$Ascite_Efusion), ref = 1)
+dengue$Hepatomegaly <- relevel(as.factor(dengue$Hepatomegaly), ref = 1)
+dengue$Lethargy <- relevel(as.factor(dengue$Lethargy), ref = 1)
+dengue$Severe.Vomiting <- relevel(as.factor(dengue$Severe.Vomiting), ref = 1)
+dengue$Severe.Abdominal.pain <- relevel(as.factor(dengue$Severe.Abdominal.pain), ref = 1)
+dengue$Mucosal.Bleeding <- relevel(as.factor(dengue$Mucosal.Bleeding), ref = 1)
+glm.dengue.mod4 <- glm(data = dengue, 
+                  formula = as.factor(Severe_Dengue) ~ Hct_Rise + 
+                    Postural.SBPFall..10.33. + 
+                    Ascite_Efusion + 
+                    Hepatomegaly + 
+                    Lethargy + 
+                    Severe.Vomiting + 
+                    Severe.Abdominal.pain + 
+                    Mucosal.Bleeding, 
+                  family = binomial)
+summary(glm.dengue.mod4)
+coeffs.mod4 <- glm.dengue.mod3$coefficients
+ORs.mod4 <- exp(coeffs.mod4)
+OR.CI.mod4 <- exp(confint(glm.dengue.mod4))
+cbind(ORs.mod4, OR.CI.mod4)
+```
+
+```{r relevel-plot}
+ggcoef_table(glm.dengue.mod4, 
+             exponentiate = TRUE,
+             variable_labels = c(Hct_Rise = "Hematocrit Rise", 
+                                 Postural.SBP_Drop = "Drop in Systolic BP",
+                                 Ascite_Efusion = "Ascites/Effusion", 
+                                 Hepatomegaly = "Hepatomegaly",
+                                 Lethargy = "Lethargy",
+                                 Severe.Vomiting = "Severe Vomiting",
+                                 Severe.Abdominal.pain = "Severe Abdominal Pain",
+                                 Mucosal.Bleeding = "Mucosal Bleeding"),
+             signif_stars = TRUE, 
+             plot_title = "Odds Ratios of Variables Predicting Severe Dengue")
+```
+
+Ok so this is the exact same as before, but to get it to work I had to turn the variables into factors. I tried releveling to 0, but it threw an error. Ultimately, I do not know how the original authors got their results. I think my first model is the best model!
