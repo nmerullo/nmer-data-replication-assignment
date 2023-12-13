@@ -507,6 +507,8 @@ ggcoef_table(glm.dengue,
              plot_title = "Odds Ratios of Variables Predicting Severe Dengue")
 ```
 
+This plot shows each variable on the left and its odd ratio moving across a plane - more to the right means a higher odds of predicting the response variable (severe dengue in this case). The solid vertical line slightly left justified is an odds ratio of 1. Stars represent level of significance of that odds ratio. The table tells us the odds ration, the confidence intervals, and the p value for each variable. Because my confidence intervals are so wide, the x axis on the plot hs a different scale than just 0, 1 and 2, etc. 
+
 Ok so revisiting the results from the paper:
 
 ```{r table3-2, echo=FALSE, fig.align='center', out.width='85%'}
